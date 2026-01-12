@@ -81,12 +81,12 @@ turntable/
 ## Development Phases
 
 ### Phase 1: Direct Motor Control (Test)
-- [ ] Implement stepper motor driver module
-- [ ] GPIO configuration for IN1-IN4
-- [ ] Full-step and half-step sequences
-- [ ] Direction control (CW/CCW)
-- [ ] Speed control via step delay timing
-- [ ] Basic test: rotate motor in both directions at various speeds
+- [x] Implement stepper motor driver module
+- [x] GPIO configuration for IN1-IN4
+- [x] Full-step and half-step sequences
+- [x] Direction control (CW/CCW)
+- [x] Speed control via step delay timing
+- [x] Basic test: rotate motor in both directions at various speeds
 
 ### Phase 2: WiFi Control
 - [ ] WiFi station mode connection
