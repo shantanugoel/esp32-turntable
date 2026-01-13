@@ -59,6 +59,11 @@ turntable/
 ├── src/
 │   ├── bin/
 │   │   └── main.rs          # Application entry point
+│   ├── web/
+│   │   └── index.html       # Embedded web UI
+│   ├── stepper.rs           # Stepper motor driver
+│   ├── wifi.rs              # WiFi connection management
+│   ├── http.rs              # HTTP server and API
 │   └── lib.rs               # Library root
 ├── Cargo.toml               # Dependencies and build config
 ├── rust-toolchain.toml      # Rust toolchain config
@@ -89,10 +94,11 @@ turntable/
 - [x] Basic test: rotate motor in both directions at various speeds
 
 ### Phase 2: WiFi Control
-- [ ] WiFi station mode connection
-- [ ] HTTP server or simple TCP socket for commands
-- [ ] Command protocol: direction, speed, steps/continuous
-- [ ] Status reporting
+- [x] WiFi station mode connection
+- [x] HTTP server with embedded web UI
+- [x] REST API endpoints for motor control
+- [x] Gear ratio support (1:3 external gear)
+- [x] Photography/videography/3D scanning presets
 
 ### Phase 3: BLE Control
 - [ ] BLE GATT server setup
