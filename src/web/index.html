@@ -1,1 +1,755 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Turntable</title><style>:root{--b:#121212;--s:#1E1E1E;--s2:#252525;--t:#E0E0E0;--td:#888;--a:#F59E0B;--d:#EF4444;--br:#333}body{margin:0;background:var(--b);color:var(--t);font-family:system-ui,sans-serif;display:flex;justify-content:center;min-height:100vh}*{box-sizing:border-box}.c{width:100%;max-width:480px;padding:20px;display:flex;flex-direction:column;gap:20px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--br);padding-bottom:15px}h1{margin:0;font-size:1.2rem;color:var(--td)}.dot{width:10px;height:10px;border-radius:50%;background:var(--d);transition:.3s}.dot.on{background:#10B981;box-shadow:0 0 8px #10B981}.p{background:var(--s);border:1px solid var(--br);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:15px}.lbl{font-size:.75rem;text-transform:uppercase;color:var(--td);display:block;margin-bottom:5px}.rpm{font-family:monospace;font-size:3rem;font-weight:700;color:var(--a);text-align:center}.rng{width:100%;height:40px;display:flex;align-items:center}input[type=range]{-webkit-appearance:none;width:100%;background:0 0}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:24px;width:24px;border-radius:50%;background:var(--a);margin-top:-10px}input[type=range]::-webkit-slider-runnable-track{width:100%;height:4px;background:var(--s2)}.tgl{display:flex;background:var(--s2);border-radius:6px;padding:4px}.tb{flex:1;background:0 0;border:0;color:var(--td);padding:10px;border-radius:4px;cursor:pointer}.tb.act{background:var(--a);color:#000}.row{display:grid;grid-template-columns:1fr auto;gap:10px}input[type=number]{background:var(--b);border:1px solid var(--br);color:var(--t);padding:12px;border-radius:6px;font-family:monospace;width:100%}button{border:0;border-radius:6px;padding:12px;font-weight:600;cursor:pointer;display:flex;justify-content:center;align-items:center}.btn-p{background:var(--a);color:#000}.btn-s{background:var(--s2);color:var(--t);border:1px solid var(--br)}.btn-d{background:var(--d);color:#fff;width:100%;padding:20px;font-size:1.5rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px}.chp{background:var(--s2);border:1px solid var(--br);color:var(--td);padding:8px;border-radius:4px;text-align:center;cursor:pointer;font-size:.9rem}.chp:hover{border-color:var(--a);color:var(--t)}.tabs{display:flex;gap:15px;border-bottom:1px solid var(--br);margin-bottom:15px}.tab{padding-bottom:8px;color:var(--td);cursor:pointer;border-bottom:2px solid transparent}.tab.act{color:var(--a);border-bottom-color:var(--a)}.bar{font-family:monospace;font-size:.8rem;color:var(--td);display:flex;justify-content:space-between;margin-top:auto}.prg{width:100%;height:4px;background:var(--s2);margin-top:10px;display:none}.prg-in{height:100%;background:var(--a);width:0%}.rot .prg{display:block}.hide{display:none}.seq{background:#f59e0b1a;border:1px solid #925f07;padding:10px;border-radius:6px;margin-top:10px}.ck{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.9rem}input[type=checkbox]{accent-color:var(--a)}</style></head><body><div class="c"><header><h1>Turntable <span style="color:var(--a)">//</span></h1><div id="conn" class="dot" title="Disconnected"></div></header><div class="p"><div><span class="lbl">Speed (RPM)</span><div class="rpm" id="rv">1.0</div><div class="rng"><input type="range" id="sl" min="0.5" max="5.0" step="0.1" value="1.0"></div></div><div><span class="lbl">Direction</span><div class="tgl"><button class="tb" id="bccw" onclick="setDir('ccw')">CCW ↺</button><button class="tb act" id="bcw" onclick="setDir('cw')">CW ↻</button></div></div></div><div class="p"><div class="tabs"><div class="tab act" onclick="mod('man')">Manual</div><div class="tab" onclick="mod('pho')">Photo</div><div class="tab" onclick="mod('vid')">Video</div></div><div id="m-man" class="mc"><span class="lbl">Angle</span><div class="grid"><div class="chp" onclick="ang(30)">30°</div><div class="chp" onclick="ang(45)">45°</div><div class="chp" onclick="ang(90)">90°</div><div class="chp" onclick="ang(180)">180°</div><div class="chp" onclick="ang(360)">360°</div></div><br><div class="row"><input type="number" id="inp" value="90"><button class="btn-p" onclick="rot()">ROTATE</button></div></div><div id="m-pho" class="mc hide"><span class="lbl">Preset</span><div class="grid"><div class="chp" onclick="seq(36,10)">36x</div><div class="chp" onclick="seq(72,5)">72x</div><div class="chp" onclick="seq(4,90)">4x</div></div><div class="seq"><div class="ck"><input type="checkbox" id="cp" checked><label>Pause</label></div><div class="row"><div><span class="lbl">Step</span><span id="si" style="font-family:monospace">10°</span></div><button style="background:0;border:1px solid var(--a);color:var(--a)" id="bs" onclick="goSeq()">START</button></div></div><div id="ss" class="hide" style="text-align:center;margin-top:10px;color:var(--a);font-weight:700">Shot <span id="sc">0</span> / <span id="st">0</span><br><button class="btn-p" id="bn" onclick="nxt()" style="width:100%;margin-top:8px">NEXT</button></div></div><div id="m-vid" class="mc hide"><p style="color:var(--td);font-size:.9rem">Continuous Rotation</p><div class="row"><button class="btn-s" onclick="spd(0.5)">Slow</button><button class="btn-s" onclick="spd(2.0)">Fast</button></div><br><button class="btn-p" style="width:100%" onclick="cont()">START</button></div><div id="fb" class="prg"><div class="prg-in" id="pb"></div></div></div><button class="btn-d" onclick="halt()">STOP</button><div class="bar"><span id="txt">IDLE</span><span id="at">0°</span></div></div><script>let s={r:1.0,d:'cw',rot:false,a:0,q:null};const E={r:document.getElementById('rv'),sl:document.getElementById('sl'),i:document.getElementById('inp'),t:document.getElementById('txt'),at:document.getElementById('at'),p:document.getElementById('pb'),fb:document.getElementById('fb'),c:document.getElementById('conn'),bs:document.getElementById('bs'),ss:document.getElementById('ss'),bn:document.getElementById('bn')};function init(){E.sl.addEventListener('input',e=>{s.r=parseFloat(e.target.value);E.r.textContent=s.r.toFixed(1)});E.sl.addEventListener('change',()=>api('speed',{rpm:s.r}));E.c.classList.add('on')}async function api(e,d){try{await fetch('/api/'+e,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});E.c.classList.add('on')}catch(x){E.c.classList.remove('on')}}function setDir(d){s.d=d;document.getElementById('bcw').classList.toggle('act',d==='cw');document.getElementById('bccw').classList.toggle('act',d==='ccw')}function spd(v){s.r=v;E.sl.value=v;E.r.textContent=v.toFixed(1);api('speed',{rpm:v})}function ang(v){E.i.value=v}function mod(m){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));event.target.classList.add('act');document.querySelectorAll('.mc').forEach(c=>c.classList.add('hide'));document.getElementById('m-'+m).classList.remove('hide')}async function rot(){if(s.rot)return;const d=parseInt(E.i.value);if(!d)return;stat('ROTATING...');anim(d);await api('rotate',{degrees:d,direction:s.d})}async function cont(){stat('CONTINUOUS');E.fb.classList.add('rot');E.p.style.width='100%';await api('continuous',{direction:s.d})}async function halt(){if(s.q)endSeq();E.fb.classList.remove('rot');E.p.style.width='0%';stat('STOPPED');await api('stop')}function seq(n,d){s.q={t:n,c:0,s:d,p:document.getElementById('cp').checked};document.getElementById('si').textContent=d+'°';E.ss.style.display='none';E.bs.style.display='block'}function endSeq(){s.q=null;E.ss.style.display='none';E.bs.style.display='block';E.bn.style.display='none'}async function goSeq(){if(!s.q)seq(36,10);s.q.p=document.getElementById('cp').checked;E.bs.style.display='none';E.ss.style.display='block';nxt()}async function nxt(){if(!s.q)return;s.q.c++;document.getElementById('sc').textContent=s.q.c;document.getElementById('st').textContent=s.q.t;E.bn.style.display='none';stat('SHOT '+s.q.c);step(s.q.s);await api('rotate',{degrees:s.q.s,direction:s.d});if(s.q.c>=s.q.t){stat('DONE');endSeq();return}if(s.q.p){E.bn.style.display='inline-block';stat('WAITING')}else{setTimeout(nxt,2000)}}function step(d){const t=(d/360)*(60/s.r);anim(d)}function stat(m){E.t.textContent=m;s.rot=m.includes('ROTATING')||m.includes('CONTINUOUS')}function anim(d,cb){E.fb.classList.add('rot');E.p.style.width='0%';E.p.style.transition='none';const t=(d/360)*(60/s.r);requestAnimationFrame(()=>{E.p.style.transition='width '+t+'s linear';E.p.style.width='100%'});setTimeout(()=>{E.fb.classList.remove('rot');s.a+=(s.d==='cw'?d:-d);E.at.textContent=Math.abs(s.a)+'°';if(cb)cb();else stat('IDLE')},t*1000)}init()</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turntable Controller</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --surface: #1E1E1E;
+            --surface-2: #2A2A2A;
+            --text: #E0E0E0;
+            --text-dim: #888888;
+            --accent: #F59E0B;
+            --accent-dim: #925f07;
+            --danger: #EF4444;
+            --success: #10B981;
+            --border: #333333;
+            --radius: 8px;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        * { box-sizing: border-box; }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        .brand span { color: var(--accent); }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            transition: 0.3s;
+        }
+
+        .status-dot.connected { background: var(--text-dim); }
+        .status-dot.active { 
+            background: var(--success); 
+            box-shadow: 0 0 8px var(--success);
+        }
+        .status-dot.pulsing {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .monitor {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .monitor-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .monitor-value {
+            font-family: 'SF Mono', 'Roboto Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .monitor-value.highlight { color: var(--accent); }
+
+        .monitor-sub {
+            font-family: 'SF Mono', 'Roboto Mono', monospace;
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: var(--surface-2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.1s linear;
+        }
+
+        .progress-fill.indeterminate {
+            width: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--accent),
+                var(--accent) 10px,
+                var(--accent-dim) 10px,
+                var(--accent-dim) 20px
+            );
+            background-size: 200% 100%;
+            animation: stripe-move 1s linear infinite;
+        }
+
+        @keyframes stripe-move {
+            0% { background-position: 100% 0; }
+            100% { background-position: 0 0; }
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: -8px;
+            cursor: pointer;
+            border: 2px solid var(--bg);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: var(--surface-2);
+            border-radius: 2px;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: var(--surface-2);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            padding-bottom: 10px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 8px;
+        }
+
+        .chip {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .chip:hover {
+            border-color: var(--accent);
+            background: var(--surface);
+        }
+        
+        .chip.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+        
+        .btn-primary:active { transform: scale(0.98); }
+
+        .btn-stop {
+            background: var(--danger);
+            color: #fff;
+            margin-top: auto;
+            position: sticky;
+            bottom: 20px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            z-index: 10;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type=number] {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--surface-2);
+            border-radius: 6px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        input[type=checkbox] {
+            accent-color: var(--accent);
+            width: 18px;
+            height: 18px;
+        }
+
+        .hidden { display: none !important; }
+        .disabled { opacity: 0.5; pointer-events: none; }
+        .text-mono { font-family: monospace; }
+        
+        .seq-info {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-dim);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .seq-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">TURNTABLE <span>//</span></div>
+            <div id="status-dot" class="status-dot" title="Connection Status"></div>
+        </header>
+
+        <div class="monitor">
+            <div class="monitor-label">STATUS</div>
+            <div id="status-text" class="monitor-value">IDLE</div>
+            <div class="monitor-sub" id="angle-display">0°</div>
+            <div class="progress-track">
+                <div id="progress-bar" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="control-group">
+                <div class="label">
+                    <span>Speed</span>
+                    <span class="text-mono"><span id="speed-val">1.0</span> RPM</span>
+                </div>
+                <input type="range" id="speed-slider" min="0.5" max="5.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+                <div class="label">Direction</div>
+                <div class="toggle-group">
+                    <button class="toggle-btn" id="btn-ccw" onclick="setDirection('ccw')">CCW ↺</button>
+                    <button class="toggle-btn active" id="btn-cw" onclick="setDirection('cw')">CW ↻</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="tabs">
+                <div class="tab active" onclick="setMode('manual')" id="tab-manual">MANUAL</div>
+                <div class="tab" onclick="setMode('photo')" id="tab-photo">PHOTO</div>
+                <div class="tab" onclick="setMode('video')" id="tab-video">VIDEO</div>
+            </div>
+
+            <div id="mode-manual" class="mode-content">
+                <div class="grid">
+                    <div class="chip" onclick="setInputAngle(30)">30°</div>
+                    <div class="chip" onclick="setInputAngle(45)">45°</div>
+                    <div class="chip" onclick="setInputAngle(90)">90°</div>
+                    <div class="chip" onclick="setInputAngle(180)">180°</div>
+                    <div class="chip" onclick="setInputAngle(360)">360°</div>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="angle-input" value="90" placeholder="Degrees">
+                    <button class="btn btn-primary" onclick="rotateManual()">ROTATE</button>
+                </div>
+            </div>
+
+            <div id="mode-photo" class="mode-content hidden">
+                <div id="seq-setup">
+                    <div class="grid">
+                        <div class="chip" onclick="setupSeq(36, 10)">36x 10°</div>
+                        <div class="chip" onclick="setupSeq(72, 5)">72x 5°</div>
+                        <div class="chip" onclick="setupSeq(4, 90)">4x 90°</div>
+                    </div>
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="check-pause" checked>
+                        <span>Pause between shots</span>
+                    </label>
+                    <div class="seq-info hidden" id="seq-preview">
+                        <div class="seq-stats">
+                            <span>Total Shots: <span id="prev-shots" class="text-mono">36</span></span>
+                            <span>Step: <span id="prev-step" class="text-mono">10°</span></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="startSequence()">START SEQUENCE</button>
+                </div>
+
+                <div id="seq-active" class="hidden">
+                    <div class="seq-info">
+                        <div class="seq-stats">
+                            <span>Shot <span id="seq-current" class="text-mono">1</span> / <span id="seq-total" class="text-mono">36</span></span>
+                            <span>Step: <span id="seq-step-val" class="text-mono">10°</span></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-next-shot" onclick="nextShot()" style="display:none">TAKE NEXT SHOT</button>
+                </div>
+            </div>
+
+            <div id="mode-video" class="mode-content hidden">
+                <div class="grid" style="margin-bottom: 20px;">
+                    <div class="chip" onclick="setSpeed(0.5)">Slow (0.5)</div>
+                    <div class="chip" onclick="setSpeed(1.0)">Normal (1.0)</div>
+                    <div class="chip" onclick="setSpeed(3.0)">Fast (3.0)</div>
+                </div>
+                <button class="btn btn-primary" id="btn-video-toggle" onclick="toggleVideo()">START ROTATION</button>
+            </div>
+        </div>
+
+        <button id="btn-stop" class="btn btn-stop hidden" onclick="stopAll()">STOP MOTOR</button>
+    </div>
+
+    <script>
+        const STATE = {
+            IDLE: 'IDLE',
+            ROTATING: 'ROTATING', 
+            SPINNING: 'SPINNING', 
+            WAITING: 'WAITING',   
+            PAUSED: 'PAUSED'      
+        };
+
+        let appState = {
+            status: STATE.IDLE,
+            rpm: 1.0,
+            dir: 'cw',
+            angle: 0,
+            mode: 'manual',
+            sequence: null, 
+            timer: null
+        };
+
+        const UI = {
+            statusDot: document.getElementById('status-dot'),
+            statusText: document.getElementById('status-text'),
+            angleDisplay: document.getElementById('angle-display'),
+            progressBar: document.getElementById('progress-bar'),
+            speedSlider: document.getElementById('speed-slider'),
+            speedVal: document.getElementById('speed-val'),
+            angleInput: document.getElementById('angle-input'),
+            btnStop: document.getElementById('btn-stop'),
+            btnVideo: document.getElementById('btn-video-toggle'),
+            btnNext: document.getElementById('btn-next-shot'),
+            seqSetup: document.getElementById('seq-setup'),
+            seqActive: document.getElementById('seq-active'),
+            checkPause: document.getElementById('check-pause'),
+            tabs: {
+                manual: document.getElementById('tab-manual'),
+                photo: document.getElementById('tab-photo'),
+                video: document.getElementById('tab-video')
+            },
+            modes: {
+                manual: document.getElementById('mode-manual'),
+                photo: document.getElementById('mode-photo'),
+                video: document.getElementById('mode-video')
+            }
+        };
+
+        function init() {
+            UI.speedSlider.addEventListener('input', (e) => {
+                appState.rpm = parseFloat(e.target.value);
+                UI.speedVal.textContent = appState.rpm.toFixed(1);
+            });
+            UI.speedSlider.addEventListener('change', () => {
+                api('speed', { rpm: appState.rpm });
+            });
+            
+            UI.statusDot.classList.add('connected');
+            updateUI();
+        }
+
+        function updateUI() {
+            UI.statusText.textContent = appState.status;
+            UI.statusText.classList.toggle('highlight', appState.status !== STATE.IDLE);
+            
+            UI.statusDot.className = 'status-dot connected';
+            if (appState.status === STATE.ROTATING || appState.status === STATE.SPINNING) {
+                UI.statusDot.classList.add('pulsing');
+            }
+
+            if (appState.status === STATE.SPINNING) {
+                UI.progressBar.className = 'progress-fill indeterminate';
+                UI.progressBar.style.width = '100%';
+            } else if (appState.status === STATE.IDLE || appState.status === STATE.PAUSED || appState.status === STATE.WAITING) {
+                UI.progressBar.className = 'progress-fill';
+                UI.progressBar.style.width = '0%';
+            } else {
+                UI.progressBar.className = 'progress-fill';
+            }
+
+            if (appState.status !== STATE.IDLE && appState.status !== STATE.PAUSED && appState.status !== STATE.WAITING) {
+                UI.btnStop.classList.remove('hidden');
+            } else {
+                UI.btnStop.classList.add('hidden');
+            }
+
+            if (appState.status === STATE.SPINNING) {
+                UI.btnVideo.textContent = 'STOP ROTATION';
+                UI.btnVideo.style.backgroundColor = 'var(--danger)';
+                UI.btnVideo.style.color = '#fff';
+            } else {
+                UI.btnVideo.textContent = 'START ROTATION';
+                UI.btnVideo.style.backgroundColor = 'var(--accent)';
+                UI.btnVideo.style.color = '#000';
+            }
+
+            const busy = (appState.status === STATE.ROTATING || appState.status === STATE.SPINNING);
+            UI.speedSlider.disabled = busy;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.disabled = busy);
+        }
+
+        async function api(endpoint, data) {
+            try {
+                await fetch('/api/' + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                UI.statusDot.classList.add('connected');
+            } catch (err) {
+                console.error(err);
+                UI.statusDot.classList.remove('connected');
+            }
+        }
+
+        function setDirection(d) {
+            appState.dir = d;
+            document.getElementById('btn-cw').classList.toggle('active', d === 'cw');
+            document.getElementById('btn-ccw').classList.toggle('active', d === 'ccw');
+        }
+
+        function setSpeed(v) {
+            appState.rpm = v;
+            UI.speedSlider.value = v;
+            UI.speedVal.textContent = v.toFixed(1);
+            api('speed', { rpm: v });
+        }
+
+        function setMode(m) {
+            appState.mode = m;
+            
+            Object.keys(UI.tabs).forEach(k => {
+                UI.tabs[k].classList.toggle('active', k === m);
+            });
+            
+            Object.keys(UI.modes).forEach(k => {
+                UI.modes[k].classList.toggle('hidden', k !== m);
+            });
+        }
+
+        function setInputAngle(v) {
+            UI.angleInput.value = v;
+        }
+
+        async function rotateManual() {
+            if (appState.status !== STATE.IDLE) return;
+            
+            const deg = parseInt(UI.angleInput.value);
+            if (!deg) return;
+
+            appState.status = STATE.ROTATING;
+            updateUI();
+            
+            api('rotate', { degrees: deg, direction: appState.dir });
+            animateProgress(deg, () => {
+                appState.status = STATE.IDLE;
+                updateUI();
+            });
+        }
+
+        async function toggleVideo() {
+            if (appState.status === STATE.SPINNING) {
+                stopAll();
+            } else {
+                appState.status = STATE.SPINNING;
+                updateUI();
+                api('continuous', { direction: appState.dir });
+            }
+        }
+
+        let seqConfig = { count: 36, step: 10 };
+
+        function setupSeq(c, s) {
+            seqConfig = { count: c, step: s };
+            document.getElementById('prev-shots').textContent = c;
+            document.getElementById('prev-step').textContent = s + '°';
+            document.getElementById('seq-preview').classList.remove('hidden');
+        }
+
+        function startSequence() {
+            if (!seqConfig) return;
+            
+            appState.sequence = {
+                total: seqConfig.count,
+                current: 0,
+                step: seqConfig.step,
+                paused: UI.checkPause.checked
+            };
+            
+            UI.seqSetup.classList.add('hidden');
+            UI.seqActive.classList.remove('hidden');
+            
+            document.getElementById('seq-total').textContent = appState.sequence.total;
+            document.getElementById('seq-step-val').textContent = appState.sequence.step + '°';
+            
+            nextShot();
+        }
+
+        function nextShot() {
+            if (!appState.sequence) return;
+            
+            appState.sequence.current++;
+            document.getElementById('seq-current').textContent = appState.sequence.current;
+            
+            UI.btnNext.style.display = 'none';
+            appState.status = STATE.ROTATING; 
+            UI.statusText.textContent = `SHOT ${appState.sequence.current}`;
+            updateUI(); 
+            
+            const deg = appState.sequence.step;
+            api('rotate', { degrees: deg, direction: appState.dir });
+            
+            animateProgress(deg, () => {
+                if (!appState.sequence) return; 
+
+                if (appState.sequence.current >= appState.sequence.total) {
+                    finishSequence();
+                    return;
+                }
+
+                if (UI.checkPause.checked) {
+                    appState.status = STATE.PAUSED;
+                    UI.btnNext.style.display = 'block';
+                    updateUI();
+                } else {
+                    appState.status = STATE.WAITING;
+                    UI.statusText.textContent = "WAITING...";
+                    updateUI();
+                    appState.timer = setTimeout(nextShot, 1500); 
+                }
+            });
+        }
+
+        function finishSequence() {
+            appState.sequence = null;
+            appState.status = STATE.IDLE;
+            UI.seqActive.classList.add('hidden');
+            UI.seqSetup.classList.remove('hidden');
+            updateUI();
+            UI.statusText.textContent = "DONE";
+        }
+
+        async function stopAll() {
+            if (appState.timer) clearTimeout(appState.timer);
+            appState.sequence = null;
+            appState.status = STATE.IDLE;
+            
+            UI.seqActive.classList.add('hidden');
+            UI.seqSetup.classList.remove('hidden');
+            UI.progressBar.style.transition = 'none';
+            UI.progressBar.style.width = '0%';
+            
+            updateUI();
+            UI.statusText.textContent = "STOPPED";
+            
+            await api('stop');
+        }
+
+        function animateProgress(deg, callback) {
+            const duration = (deg / 360) * (60 / appState.rpm);
+            
+            UI.progressBar.style.transition = 'none';
+            UI.progressBar.style.width = '0%';
+            
+            void UI.progressBar.offsetWidth;
+            
+            requestAnimationFrame(() => {
+                UI.progressBar.style.transition = `width ${duration}s linear`;
+                UI.progressBar.style.width = '100%';
+            });
+
+            appState.timer = setTimeout(() => {
+                if (appState.dir === 'cw') appState.angle += deg;
+                else appState.angle -= deg;
+                UI.angleDisplay.textContent = Math.abs(appState.angle) + '°';
+                
+                UI.progressBar.style.transition = 'none';
+                UI.progressBar.style.width = '0%';
+                
+                if (callback) callback();
+            }, duration * 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
