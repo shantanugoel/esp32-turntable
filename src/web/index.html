@@ -546,7 +546,8 @@
                 UI.progressBar.className = 'progress-fill';
             }
 
-            if (appState.status !== STATE.IDLE && appState.status !== STATE.PAUSED && appState.status !== STATE.WAITING) {
+            // Show stop button when motor is active OR when a sequence is running
+            if ((appState.status !== STATE.IDLE && appState.status !== STATE.PAUSED && appState.status !== STATE.WAITING) || appState.sequence !== null) {
                 UI.btnStop.classList.remove('hidden');
             } else {
                 UI.btnStop.classList.add('hidden');
